@@ -26,13 +26,13 @@ pub mod smart_vestiny {
 #[instruction(company_name: String)]
 pub struct CreateVestingAccount<'info> {
     #[account(mut)]
-    pub signer: Signer<'info>,
+    pub owner: Signer<'info>,
 
     #[account(
         init,
-        payer = signer,
+        payer = owner,
         space = ANCHOR_DISCRIMINATOR + VestingAccount::INIT_SPACE,
-        seeds = [company_name.as_ref(), signer.key().as_ref()],
+        seeds = [company_name.as_ref(), owner.key().as_ref()],
         bump,
     )]
     pub vesting_account: Account<'info, VestingAccount>,
@@ -41,7 +41,7 @@ pub struct CreateVestingAccount<'info> {
 
     #[account(
         init,
-        payer = signer,
+        payer = owner,
         token::mint = mint,
         token::authority = treasury_token_account,
         seeds = [b"treasury_token_account", company_name.as_bytes()],
