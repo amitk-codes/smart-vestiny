@@ -15,9 +15,16 @@ pub mod smart_vestiny {
 
     pub fn create_vesting_account(
         ctx: Context<CreateVestingAccount>,
-        _company_name: String,
+        company_name: String,
     ) -> Result<()> {
-        msg!("Greetings from: {:?}", ctx.program_id);
+        *ctx.accounts.vesting_account = VestingAccount {
+            owner: ctx.accounts.owner.key(),
+            company_name,
+            mint: ctx.accounts.mint.key(),
+            treasury_token_account: ctx.accounts.treasury_token_account.key(),
+            treasury_bump: ctx.bumps.treasury_token_account,
+            bump: ctx.bumps.vesting_account,
+        };
         Ok(())
     }
 }
