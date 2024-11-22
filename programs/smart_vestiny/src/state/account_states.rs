@@ -23,4 +23,5 @@ pub struct EmployeeAccount {
     pub end_time: i64,
     pub cliff_time: i64, // the period after which the employee can withdraw the tokens
     pub vesting_account: Pubkey, // storing the vesting_account as well to have an reference
-} 
+    pub bump: u8,
+}
