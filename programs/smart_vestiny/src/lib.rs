@@ -27,6 +27,28 @@ pub mod smart_vestiny {
         };
         Ok(())
     }
+
+    pub fn create_employee_account(
+        ctx: Context<CreateEmployeeAccount>,
+        total_amount: u64,
+        total_withdrawal_account: u64,
+        start_time: i64,
+        end_time: i64,
+        cliff_time: i64,
+    ) -> Result<()> {
+        *ctx.accounts.employee_account = EmployeeAccount {
+            beneficiary: ctx.accounts.beneficiary.key(),
+            total_amount,
+            total_withdrawal_account,
+            start_time,
+            end_time,
+            cliff_time,
+            vesting_account: ctx.accounts.vesting_account.key(),
+            bump: ctx.bumps.employee_account,
+        };
+
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
