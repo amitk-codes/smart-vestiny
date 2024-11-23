@@ -60,3 +60,27 @@ pub struct CreateVestingAccount<'info> {
 
     pub token_program: Interface<'info, TokenInterface>,
 }
+
+#[derive(Accounts)]
+#[instruction(company_name: String)]
+pub struct CreateEmployeeAccount<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+    pub beneficiary: SystemAccount<'info>,
+
+    #[account(
+        has_one = owner,
+    )]
+    pub vesting_account: Account<'info, VestingAccount>,
+
+    #[account(
+        init,
+        payer = owner,
+        space = ANCHOR_DISCRIMINATOR + EmployeeAccount::INIT_SPACE,
+        seeds = [b"employee_account", beneficiary.key().as_ref(), vesting_account.key().as_ref()],
+        bump,
+    )]
+    pub employee_account: Account<'info, EmployeeAccount>,
+
+    pub system_program: Program<'info, System>,
+}
