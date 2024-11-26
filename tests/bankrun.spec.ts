@@ -8,7 +8,7 @@ import { BankrunProvider } from "anchor-bankrun";
 import { SmartVestiny } from "../target/types/smart_vestiny";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { createMint } from "spl-token-bankrun";
+import { createMint, mintTo } from "spl-token-bankrun";
 import { expect } from "chai";
 
 describe("Vesting Smart Contract Tests", () => {
@@ -26,7 +26,7 @@ describe("Vesting Smart Contract Tests", () => {
   let employeeAccount: PublicKey;
   let mint: PublicKey;
 
-  beforeEach(async () => {
+  before(async () => {
     beneficiary = new anchor.web3.Keypair();
     bankrunContext = await startAnchor(
       "",
@@ -102,4 +102,16 @@ describe("Vesting Smart Contract Tests", () => {
     console.log("Created Vesting Account::", vestingAccountData);
   });
 
+  it("should fund the treasury account", async () => {
+    const fundTreasureAccountTx = await mintTo(
+      // @ts-ignore
+      banksclient,
+      employer,
+      mint,
+      treasuryTokenAccount,
+      employer.publicKey,
+      10_000 * LAMPORTS_PER_SOL
+    );
+    console.log("Funding Treasury Account Tx::", { fundTreasureAccountTx });
+  });
 });
