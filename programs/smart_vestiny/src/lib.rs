@@ -37,7 +37,6 @@ pub mod smart_vestiny {
     pub fn create_employee_account(
         ctx: Context<CreateEmployeeAccount>,
         total_amount: u64,
-        total_withdrawal_account: u64,
         start_time: i64,
         end_time: i64,
         cliff_time: i64,
@@ -45,7 +44,7 @@ pub mod smart_vestiny {
         *ctx.accounts.employee_account = EmployeeAccount {
             beneficiary: ctx.accounts.beneficiary.key(),
             total_amount,
-            total_withdrawal_account,
+            total_withdrawal_account: 0,
             start_time,
             end_time,
             cliff_time,
