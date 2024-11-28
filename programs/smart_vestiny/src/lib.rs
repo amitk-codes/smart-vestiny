@@ -150,7 +150,6 @@ pub struct CreateVestingAccount<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(company_name: String)]
 pub struct CreateEmployeeAccount<'info> {
     #[account(mut)]
     pub owner: Signer<'info>,
