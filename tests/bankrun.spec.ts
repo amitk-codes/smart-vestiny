@@ -1,5 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program } from "@coral-xyz/anchor";
+import { Program, BN } from "@coral-xyz/anchor";
 import { BanksClient, ProgramTestContext, startAnchor } from "solana-bankrun";
 import ProgramIdl from "../target/idl/smart_vestiny.json";
 import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
@@ -114,4 +114,21 @@ describe("Vesting Smart Contract Tests", () => {
     );
     console.log("Funding Treasury Account Tx::", { fundTreasureAccountTx });
   });
+
+  it("should create the employee vesting account", async () => {
+    const createEmployeeVestingAccountTx = await program.methods
+      .createEmployeeAccount(new BN(100), new BN(0), new BN(100), new BN(0))
+      .accounts({
+        beneficiary: beneficiary.publicKey,
+        vestingAccount: vestingAccount,
+      })
+      .rpc({ commitment: "confirmed", skipPreflight: true });
+
+    console.log(
+      "Create Employee Vesting Account Tx::",
+      createEmployeeVestingAccountTx
+    );
+  });
+
+
 });
