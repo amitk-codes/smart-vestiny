@@ -1,6 +1,11 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program, BN } from "@coral-xyz/anchor";
-import { BanksClient, ProgramTestContext, startAnchor } from "solana-bankrun";
+import {
+  BanksClient,
+  Clock,
+  ProgramTestContext,
+  startAnchor,
+} from "solana-bankrun";
 import ProgramIdl from "../target/idl/smart_vestiny.json";
 import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
@@ -130,5 +135,25 @@ describe("Vesting Smart Contract Tests", () => {
     );
   });
 
+  it("should claim the tokens", async () => {
+    const currentClock = await banksclient.getClock();
+    const {
+      slot,
+      epochStartTimestamp,
+      epoch,
+      leaderScheduleEpoch,
+    } = currentClock;
+
+    bankrunContext.setClock(
+      new Clock(slot, epochStartTimestamp, epoch, leaderScheduleEpoch, 1000n)
+    );
+
+    const tx = await programForBeneficiary.methods
+      .claimTokens(companyName)
+      .accountsPartial({ tokenProgram: TOKEN_PROGRAM_ID, vestingAccount })
+      .rpc({ commitment: "confirmed" });
+
+    console.log("Claim Tokens Tx::", tx)
+  });
 
 });
