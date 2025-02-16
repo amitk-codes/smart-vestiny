@@ -14,7 +14,6 @@ import { SmartVestiny } from "../target/types/smart_vestiny";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { createMint, mintTo } from "spl-token-bankrun";
-import { expect } from "chai";
 
 describe("Vesting Smart Contract Tests", () => {
   const companyName = "test-company-name";
@@ -31,7 +30,7 @@ describe("Vesting Smart Contract Tests", () => {
   let employeeAccount: PublicKey;
   let mint: PublicKey;
 
-  before(async () => {
+  beforeAll(async () => {
     beneficiary = new anchor.web3.Keypair();
     bankrunContext = await startAnchor(
       "",
@@ -87,7 +86,7 @@ describe("Vesting Smart Contract Tests", () => {
     );
   });
 
-  it("It creates the vesting account", async () => {
+  test("It creates the vesting account", async () => {
     const tx = await program.methods
       .createVestingAccount(companyName)
       .accounts({
@@ -105,9 +104,16 @@ describe("Vesting Smart Contract Tests", () => {
     );
 
     console.log("Created Vesting Account::", vestingAccountData);
+
+    expect(vestingAccountData.companyName).toEqual(companyName);
+    expect(vestingAccountData.mint).toEqual(mint);
+    expect(vestingAccountData.owner).toEqual(employer.publicKey);
+    expect(vestingAccountData.treasuryTokenAccount).toEqual(
+      treasuryTokenAccount
+    );
   });
 
-  it("should fund the treasury account", async () => {
+  test("should fund the treasury account", async () => {
     const fundTreasureAccountTx = await mintTo(
       // @ts-ignore
       banksclient,
@@ -120,9 +126,18 @@ describe("Vesting Smart Contract Tests", () => {
     console.log("Funding Treasury Account Tx::", { fundTreasureAccountTx });
   });
 
-  it("should create the employee vesting account", async () => {
+  test("should create the employee vesting account", async () => {
+    const cliffTime = 0;
+    const totalAmount = 100;
+    const startTime = 0;
+    const endTime = 100;
     const createEmployeeVestingAccountTx = await program.methods
-      .createEmployeeAccount(new BN(100), new BN(0), new BN(100), new BN(0))
+      .createEmployeeAccount(
+        new BN(totalAmount),
+        new BN(startTime),
+        new BN(endTime),
+        new BN(cliffTime)
+      )
       .accounts({
         beneficiary: beneficiary.publicKey,
         vestingAccount: vestingAccount,
@@ -133,16 +148,22 @@ describe("Vesting Smart Contract Tests", () => {
       "Create Employee Vesting Account Tx::",
       createEmployeeVestingAccountTx
     );
+
+    const fetchEmployeeAccount =
+      await program.account.employeeAccount.fetch(employeeAccount);
+
+    expect(fetchEmployeeAccount.beneficiary).toEqual(beneficiary.publicKey);
+    expect(fetchEmployeeAccount.cliffTime.toNumber()).toEqual(cliffTime);
+    expect(fetchEmployeeAccount.endTime.toNumber()).toEqual(endTime);
+    expect(fetchEmployeeAccount.startTime.toNumber()).toEqual(startTime);
+    expect(fetchEmployeeAccount.totalWithdrawalAccount.toNumber()).toEqual(0);
+    expect(fetchEmployeeAccount.vestingAccount).toEqual(vestingAccount);
   });
 
-  it("should claim the tokens", async () => {
+  test("should claim the tokens", async () => {
     const currentClock = await banksclient.getClock();
-    const {
-      slot,
-      epochStartTimestamp,
-      epoch,
-      leaderScheduleEpoch,
-    } = currentClock;
+    const { slot, epochStartTimestamp, epoch, leaderScheduleEpoch } =
+      currentClock;
 
     bankrunContext.setClock(
       new Clock(slot, epochStartTimestamp, epoch, leaderScheduleEpoch, 1000n)
@@ -153,7 +174,7 @@ describe("Vesting Smart Contract Tests", () => {
       .accountsPartial({ tokenProgram: TOKEN_PROGRAM_ID, vestingAccount })
       .rpc({ commitment: "confirmed" });
 
-    console.log("Claim Tokens Tx::", tx)
+    console.log("Claim Tokens Tx::", tx);
   });
 
 });
